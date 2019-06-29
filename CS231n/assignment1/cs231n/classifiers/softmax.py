@@ -7,7 +7,7 @@ def softmax_loss_naive(W, X, y, reg):
     """
     Softmax loss function, naive implementation (with loops)
 
-    Inputs have dimension D, there are C classes, and we operate on minibatches
+    Inputs have dimension D, there are C classes, and we operate on minibatches 
     of N examples.
 
     Inputs:
@@ -33,6 +33,28 @@ def softmax_loss_naive(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
+    scores = X.dot(W)
+    train_examples = X.shape[0]
+    number_classes = W.shape[1]
+    current_example = None
+    for i in range(train_examples):
+      current_example = scores[i , :]
+      current_example=np.exp(current_example)        
+      sum_norm = current_example.sum()
+      current_example = current_example / sum_norm
+      loss+= -np.log(current_example[y[i]])
+
+      for j in range(number_classes):
+        dW[:,j] += X[i] * current_example[j]
+      dW[:,y[i]] -= X[i]
+
+
+
+    loss = loss/train_examples
+    dW = dW/train_examples
+
+    loss += reg * np.sum(W*W)
+    dW += reg * 2 * W
     pass
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
@@ -57,6 +79,32 @@ def softmax_loss_vectorized(W, X, y, reg):
     # regularization!                                                           #
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+
+    train_examples = X.shape[0]
+    number_classes = W.shape[1]
+    scores = X.dot(W)
+    loss_scores = scores
+    loss_scores = np.exp(loss_scores)
+    sums = loss_scores.sum(axis = 1)
+    
+    loss_scores = loss_scores / np.matrix(sums).T 
+     
+    loss = -np.log(loss_scores[np.arange(loss_scores.shape[0]), y]) 
+    loss = loss.sum()
+    
+    #gradient
+    loss_scores[np.arange(loss_scores.shape[0]), y] -= 1
+    dW = X.T.dot(loss_scores)
+    
+    
+    #Avg
+    loss = loss / train_examples
+    dW = dW / train_examples
+    
+    #reg
+    loss += reg * np.sum(W*W)
+    dW += reg * 2 * W
+
 
     pass
 
